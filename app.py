@@ -32,6 +32,251 @@ st.set_page_config(
     layout="wide",
 )
 
+# -----------------------------------------------------------------------------
+# Kamus normalisasi tampilan
+# Bagian ini hanya mengubah tampilan agar mudah dipahami saat presentasi.
+# Nilai asli tetap dipakai oleh model, supaya pipeline machine learning aman.
+# -----------------------------------------------------------------------------
+
+FEATURE_LABELS = {
+    "checking_status": "Status rekening giro",
+    "duration": "Durasi kredit (bulan)",
+    "credit_history": "Riwayat kredit",
+    "purpose": "Tujuan kredit",
+    "credit_amount": "Jumlah kredit",
+    "savings_status": "Status tabungan",
+    "employment": "Lama bekerja",
+    "installment_commitment": "Persentase cicilan dari pendapatan",
+    "personal_status": "Status pribadi",
+    "other_parties": "Pihak penjamin/pendamping",
+    "residence_since": "Lama tinggal di tempat saat ini (tahun)",
+    "property_magnitude": "Jenis aset/jaminan",
+    "age": "Usia",
+    "other_payment_plans": "Rencana pembayaran lain",
+    "housing": "Status tempat tinggal",
+    "existing_credits": "Jumlah kredit berjalan",
+    "job": "Jenis pekerjaan",
+    "num_dependents": "Jumlah tanggungan",
+    "own_telephone": "Kepemilikan telepon",
+    "foreign_worker": "Status pekerja asing",
+    "age_group": "Kelompok usia",
+    "class": "Kelas risiko kredit",
+    "target": "Kode target",
+}
+
+FEATURE_EXPLANATIONS = {
+    "checking_status": "Kondisi saldo rekening giro calon peminjam.",
+    "duration": "Lama waktu pinjaman dalam bulan.",
+    "credit_history": "Riwayat pembayaran kredit sebelumnya.",
+    "purpose": "Alasan atau tujuan pengajuan kredit.",
+    "credit_amount": "Nominal kredit yang diajukan.",
+    "savings_status": "Perkiraan jumlah tabungan calon peminjam.",
+    "employment": "Lama calon peminjam bekerja.",
+    "installment_commitment": "Perbandingan cicilan terhadap pendapatan.",
+    "personal_status": "Status personal yang terdapat pada dataset.",
+    "other_parties": "Ada atau tidaknya pihak lain seperti penjamin.",
+    "residence_since": "Lama calon peminjam tinggal di alamat saat ini.",
+    "property_magnitude": "Jenis aset yang dimiliki atau dapat menjadi jaminan.",
+    "age": "Usia calon peminjam.",
+    "other_payment_plans": "Rencana pembayaran lain di luar kredit utama.",
+    "housing": "Status tempat tinggal calon peminjam.",
+    "existing_credits": "Jumlah kredit lain yang sedang berjalan.",
+    "job": "Kategori pekerjaan calon peminjam.",
+    "num_dependents": "Jumlah orang yang menjadi tanggungan.",
+    "own_telephone": "Keterangan apakah calon peminjam memiliki telepon.",
+    "foreign_worker": "Keterangan apakah calon peminjam berstatus pekerja asing.",
+    "age_group": "Kelompok usia yang dibuat dari median usia dataset.",
+}
+
+CATEGORY_LABELS = {
+    "checking_status": {
+        "<0": "Saldo rekening giro kurang dari 0",
+        "0<=X<200": "Saldo rekening giro 0 sampai 200",
+        ">=200": "Saldo rekening giro 200 atau lebih",
+        "no checking": "Tidak memiliki rekening giro",
+    },
+    "credit_history": {
+        "no credits/all paid": "Tidak punya kredit / semua sudah lunas",
+        "all paid": "Semua kredit sudah lunas",
+        "existing paid": "Kredit berjalan dibayar lancar",
+        "delayed previously": "Pernah terlambat membayar",
+        "critical/other existing credit": "Riwayat kredit kritis / ada kredit lain",
+    },
+    "purpose": {
+        "new car": "Mobil baru",
+        "used car": "Mobil bekas",
+        "furniture/equipment": "Furnitur atau peralatan rumah",
+        "radio/tv": "Radio, TV, atau elektronik",
+        "domestic appliance": "Peralatan rumah tangga",
+        "repairs": "Perbaikan",
+        "education": "Pendidikan",
+        "vacation": "Liburan",
+        "retraining": "Pelatihan ulang",
+        "business": "Bisnis atau usaha",
+        "other": "Lainnya",
+    },
+    "savings_status": {
+        "<100": "Tabungan kurang dari 100",
+        "100<=X<500": "Tabungan 100 sampai 500",
+        "500<=X<1000": "Tabungan 500 sampai 1000",
+        ">=1000": "Tabungan 1000 atau lebih",
+        "no known savings": "Tidak ada informasi tabungan",
+    },
+    "employment": {
+        "unemployed": "Tidak bekerja",
+        "<1": "Bekerja kurang dari 1 tahun",
+        "1<=X<4": "Bekerja 1 sampai 4 tahun",
+        "4<=X<7": "Bekerja 4 sampai 7 tahun",
+        ">=7": "Bekerja 7 tahun atau lebih",
+    },
+    "personal_status": {
+        "male div/sep": "Laki-laki cerai/berpisah",
+        "female div/dep/mar": "Perempuan cerai/tanggungan/menikah",
+        "male single": "Laki-laki lajang",
+        "male mar/wid": "Laki-laki menikah/duda",
+        "female single": "Perempuan lajang",
+    },
+    "other_parties": {
+        "none": "Tidak ada",
+        "co applicant": "Pemohon bersama",
+        "guarantor": "Penjamin",
+    },
+    "property_magnitude": {
+        "real estate": "Properti / real estate",
+        "life insurance": "Asuransi jiwa atau tabungan",
+        "car": "Mobil atau aset kendaraan",
+        "no known property": "Tidak ada aset yang diketahui",
+    },
+    "other_payment_plans": {
+        "bank": "Melalui bank",
+        "stores": "Melalui toko",
+        "none": "Tidak ada",
+    },
+    "housing": {
+        "rent": "Sewa",
+        "own": "Milik sendiri",
+        "for free": "Tinggal gratis",
+    },
+    "job": {
+        "unemp/unskilled non res": "Tidak bekerja / tidak terampil non-residen",
+        "unskilled resident": "Pekerja tidak terampil residen",
+        "skilled": "Pekerja terampil",
+        "high qualif/self emp/mgmt": "Kualifikasi tinggi / wiraswasta / manajemen",
+    },
+    "own_telephone": {
+        "none": "Tidak punya telepon",
+        "yes": "Punya telepon",
+    },
+    "foreign_worker": {
+        "yes": "Ya",
+        "no": "Tidak",
+    },
+    "age_group": {
+        "younger": "Usia di bawah median",
+        "older": "Usia median atau lebih tua",
+        "unknown": "Tidak diketahui",
+    },
+    "class": {
+        "good": "Risiko kredit baik",
+        "bad": "Risiko kredit buruk",
+    },
+}
+
+MODEL_LABELS = {
+    "Logistic Regression": "Regresi Logistik",
+    "Decision Tree": "Pohon Keputusan",
+    "Random Forest": "Random Forest",
+}
+
+METRIC_LABELS = {
+    "Model": "Model",
+    "Accuracy": "Akurasi",
+    "Precision": "Presisi",
+    "Recall": "Recall",
+    "F1-score": "F1-score",
+    "accuracy": "Akurasi",
+    "precision": "Presisi",
+    "recall": "Recall",
+    "f1_score": "F1-score",
+    "selection_rate": "Selection rate",
+}
+
+
+def label_feature(column_name: str) -> str:
+    return FEATURE_LABELS.get(column_name, column_name)
+
+
+def label_value(column_name: str, value) -> str:
+    text_value = str(value)
+    return CATEGORY_LABELS.get(column_name, {}).get(text_value, text_value)
+
+
+def label_model(model_name: str) -> str:
+    return MODEL_LABELS.get(model_name, model_name)
+
+
+def make_dataframe_easy_to_read(dataframe: pd.DataFrame) -> pd.DataFrame:
+    """Membuat dataframe tampilan berbahasa Indonesia tanpa mengubah data asli."""
+    display_df = dataframe.copy()
+
+    for col in display_df.columns:
+        if col in CATEGORY_LABELS:
+            display_df[col] = display_df[col].astype(str).map(
+                lambda value, c=col: label_value(c, value)
+            )
+
+    if "target" in display_df.columns:
+        display_df["target"] = display_df["target"].map(
+            {0: "0 = Risiko baik", 1: "1 = Risiko buruk"}
+        ).fillna(display_df["target"])
+
+    display_df = display_df.rename(columns={col: label_feature(col) for col in display_df.columns})
+    return display_df
+
+
+def make_results_easy_to_read(results_df: pd.DataFrame) -> pd.DataFrame:
+    display_df = results_df.copy()
+    display_df["Model"] = display_df["Model"].map(label_model)
+    display_df = display_df.rename(columns=METRIC_LABELS)
+    return display_df
+
+
+def make_fairness_easy_to_read(fairness_df: pd.DataFrame, sensitive_col: str) -> pd.DataFrame:
+    display_df = fairness_df.copy()
+    display_df.index = [label_value(sensitive_col, index_value) for index_value in display_df.index]
+    display_df = display_df.rename(columns=METRIC_LABELS)
+    display_df.index.name = label_feature(sensitive_col)
+    return display_df
+
+
+def make_feature_importance_easy_to_read(feature_importance_df: pd.DataFrame) -> pd.DataFrame:
+    if feature_importance_df.empty:
+        return feature_importance_df
+
+    display_df = feature_importance_df.copy()
+    display_df["feature"] = display_df["feature"].map(normalize_encoded_feature_name)
+    display_df = display_df.rename(columns={"feature": "Fitur", "importance": "Tingkat pengaruh"})
+    return display_df
+
+
+def normalize_encoded_feature_name(encoded_name: str) -> str:
+    """Mengubah nama fitur hasil OneHotEncoder menjadi lebih mudah dibaca."""
+    if encoded_name.startswith("num__"):
+        raw_feature = encoded_name.replace("num__", "")
+        return label_feature(raw_feature)
+
+    if encoded_name.startswith("cat__"):
+        raw_value = encoded_name.replace("cat__", "")
+        matching_columns = sorted(CATEGORY_LABELS.keys(), key=len, reverse=True)
+        for col in matching_columns:
+            prefix = f"{col}_"
+            if raw_value.startswith(prefix):
+                category_value = raw_value[len(prefix):]
+                return f"{label_feature(col)} = {label_value(col, category_value)}"
+        return raw_value
+
+    return encoded_name
+
 
 @st.cache_data(show_spinner=False)
 def load_data() -> pd.DataFrame:
@@ -150,7 +395,7 @@ def train_models():
     report = classification_report(
         y_test,
         y_pred_best,
-        target_names=["Good Risk", "Bad Risk"],
+        target_names=["Risiko Baik", "Risiko Buruk"],
         zero_division=0,
         output_dict=True,
     )
@@ -195,7 +440,7 @@ def metric_card(label: str, value: str):
 
 
 st.title("Implementasi Credit Scoring Berbasis Trustworthy AI")
-st.caption("Versi web app interaktif untuk mendampingi notebook presentasi-friendly.")
+st.caption("Versi web app interaktif berbahasa Indonesia dan sudah dinormalisasi agar mudah dipresentasikan.")
 
 with st.spinner("Menyiapkan dataset dan melatih model..."):
     artifacts = train_models()
@@ -204,9 +449,11 @@ with st.spinner("Menyiapkan dataset dan melatih model..."):
 df = artifacts["df"]
 X = artifacts["X"]
 results_df = artifacts["results_df"]
+results_display_df = make_results_easy_to_read(results_df)
 best_model_name = artifacts["best_model_name"]
 best_model = artifacts["best_model"]
 fairness_df = artifacts["fairness_df"]
+fairness_display_df = make_fairness_easy_to_read(fairness_df, artifacts["sensitive_col"])
 metric_frame = artifacts["metric_frame"]
 
 st.sidebar.header("Navigasi")
@@ -234,37 +481,49 @@ if page == "Ringkasan Proyek":
     with col2:
         metric_card("Jumlah fitur", f"{X.shape[1]:,}")
     with col3:
-        metric_card("Model terbaik", best_model_name)
+        metric_card("Model terbaik", label_model(best_model_name))
     with col4:
         best_f1 = results_df.loc[results_df["Model"] == best_model_name, "F1-score"].iloc[0]
         metric_card("F1-score terbaik", f"{best_f1:.3f}")
 
     st.subheader("Tujuan")
     st.write(
-        "Aplikasi ini menunjukkan alur implementasi credit scoring berbasis machine learning, "
-        "mulai dari data understanding, preprocessing, training, evaluasi performa, evaluasi fairness, "
-        "hingga interpretasi dalam konteks Trustworthy AI."
+        "Aplikasi ini menunjukkan alur implementasi credit scoring berbasis machine learning. "
+        "Tujuannya adalah membantu memahami bagaimana data calon peminjam diproses, bagaimana model dilatih, "
+        "bagaimana performa dievaluasi, dan bagaimana prinsip Trustworthy AI diterapkan."
     )
 
     st.subheader("Alur Pipeline")
     pipeline_df = pd.DataFrame(
         [
             ["1", "Load Dataset", "Mengambil German Credit Data sebagai data mentah."],
-            ["2", "Data Understanding", "Mengecek struktur data, missing value, dan distribusi target."],
-            ["3", "Preprocessing", "StandardScaler untuk numerik dan OneHotEncoder untuk kategorikal."],
-            ["4", "Training", "Membandingkan Logistic Regression, Decision Tree, dan Random Forest."],
-            ["5", "Evaluasi", "Menggunakan accuracy, precision, recall, dan F1-score."],
-            ["6", "Fairness", "Membandingkan performa berdasarkan atribut sensitif."],
-            ["7", "Interpretasi", "Melihat feature importance untuk transparansi model."],
+            ["2", "Data Understanding", "Memahami isi data, jumlah fitur, target, dan kondisi dataset."],
+            ["3", "Normalisasi Tampilan", "Mengubah nama fitur dan pilihan kategori menjadi bahasa Indonesia agar mudah dipresentasikan."],
+            ["4", "Preprocessing", "Fitur numerik distandarisasi, fitur kategorikal diubah dengan OneHotEncoder."],
+            ["5", "Training", "Melatih Regresi Logistik, Pohon Keputusan, dan Random Forest."],
+            ["6", "Evaluasi Performa", "Membandingkan akurasi, presisi, recall, dan F1-score."],
+            ["7", "Evaluasi Fairness", "Mengecek apakah performa model berbeda pada kelompok sensitif."],
+            ["8", "Interpretasi", "Melihat fitur yang paling berpengaruh agar model lebih transparan."],
         ],
         columns=["No", "Pipeline", "Penjelasan"],
     )
     st.dataframe(pipeline_df, use_container_width=True, hide_index=True)
 
+    st.info(
+        "Normalisasi di aplikasi ini hanya untuk tampilan. Nilai asli tetap dipakai di belakang layar supaya model tetap sesuai dengan dataset dan pipeline training."
+    )
+
 elif page == "Dataset & Pipeline":
     st.header("Dataset & Pipeline")
-    st.subheader("Preview Dataset")
-    st.dataframe(df.head(10), use_container_width=True)
+    st.subheader("Preview Dataset yang Sudah Dinormalisasi")
+    st.write(
+        "Tabel di bawah ini memakai nama kolom dan isi kategori dalam bahasa Indonesia. "
+        "Tujuannya agar dosen dan audiens lebih mudah mengikuti isi dataset."
+    )
+    st.dataframe(make_dataframe_easy_to_read(df.head(10)), use_container_width=True)
+
+    with st.expander("Lihat nama kolom asli dataset"):
+        st.write(", ".join(df.columns.tolist()))
 
     col1, col2 = st.columns(2)
     with col1:
@@ -272,7 +531,7 @@ elif page == "Dataset & Pipeline":
         target_counts = df["target"].value_counts().sort_index()
         target_view = pd.DataFrame(
             {
-                "Kelas": ["Good credit risk (0)", "Bad credit risk (1)"],
+                "Kelas": ["Risiko kredit baik (0)", "Risiko kredit buruk (1)"],
                 "Jumlah": target_counts.values,
                 "Persentase": (target_counts / target_counts.sum() * 100).round(2).values,
             }
@@ -280,26 +539,50 @@ elif page == "Dataset & Pipeline":
         st.dataframe(target_view, use_container_width=True, hide_index=True)
     with col2:
         st.subheader("Jenis Fitur")
+        numeric_readable = [label_feature(col) for col in artifacts["numeric_features"]]
+        categorical_readable = [label_feature(col) for col in artifacts["categorical_features"]]
         st.write("**Fitur numerik:**")
-        st.write(", ".join(artifacts["numeric_features"]))
+        st.write(", ".join(numeric_readable))
         st.write("**Fitur kategorikal:**")
-        st.write(", ".join(artifacts["categorical_features"]))
+        st.write(", ".join(categorical_readable))
+
+    st.subheader("Kamus Fitur")
+    feature_dictionary_df = pd.DataFrame(
+        [
+            [label_feature(col), col, FEATURE_EXPLANATIONS.get(col, "-")]
+            for col in artifacts["numeric_features"] + artifacts["categorical_features"]
+        ],
+        columns=["Nama mudah dipahami", "Nama asli di dataset", "Arti fitur"],
+    )
+    st.dataframe(feature_dictionary_df, use_container_width=True, hide_index=True)
 
     st.subheader("Penjelasan Pipeline Preprocessing")
-    st.write(
-        "Pipeline preprocessing memisahkan fitur numerik dan kategorikal. Fitur numerik dinormalisasi "
-        "dengan StandardScaler, sedangkan fitur kategorikal diubah menjadi representasi numerik menggunakan "
-        "OneHotEncoder. Semua proses digabungkan dalam ColumnTransformer agar rapi dan konsisten."
+    preprocessing_df = pd.DataFrame(
+        [
+            ["Fitur numerik", "StandardScaler", "Angka dibuat berada pada skala yang lebih seimbang agar model lebih stabil."],
+            ["Fitur kategorikal", "OneHotEncoder", "Pilihan berbentuk teks diubah menjadi angka biner agar bisa dibaca model."],
+            ["Penggabungan proses", "ColumnTransformer", "Semua proses preprocessing digabung agar rapi dan konsisten."],
+            ["Training dan prediksi", "Pipeline", "Preprocessing dan model disatukan, sehingga data baru diproses dengan cara yang sama."],
+        ],
+        columns=["Bagian", "Metode", "Penjelasan presentation-friendly"],
     )
+    st.dataframe(preprocessing_df, use_container_width=True, hide_index=True)
 
 elif page == "Performa Model":
     st.header("Performa Model")
     st.subheader("Perbandingan Metrik")
-    st.dataframe(results_df.round(4), use_container_width=True, hide_index=True)
+    st.dataframe(results_display_df.round(4), use_container_width=True, hide_index=True)
+
+    st.write(
+        "Model terbaik dipilih berdasarkan F1-score karena metrik ini menyeimbangkan presisi dan recall. "
+        "Dalam kasus credit scoring, kita tidak cukup hanya melihat akurasi."
+    )
 
     st.subheader("Visualisasi F1-score")
+    chart_df = results_df.copy()
+    chart_df["Model Tampilan"] = chart_df["Model"].map(label_model)
     fig, ax = plt.subplots(figsize=(8, 4))
-    ax.bar(results_df["Model"], results_df["F1-score"])
+    ax.bar(chart_df["Model Tampilan"], chart_df["F1-score"])
     ax.set_title("Perbandingan F1-score Model")
     ax.set_xlabel("Model")
     ax.set_ylabel("F1-score")
@@ -310,53 +593,75 @@ elif page == "Performa Model":
     cm = artifacts["cm"]
     cm_df = pd.DataFrame(
         cm,
-        index=["Actual Good", "Actual Bad"],
-        columns=["Predicted Good", "Predicted Bad"],
+        index=["Aktual: Risiko baik", "Aktual: Risiko buruk"],
+        columns=["Prediksi: Risiko baik", "Prediksi: Risiko buruk"],
     )
     st.dataframe(cm_df, use_container_width=True)
 
     st.subheader("Classification Report")
     report_df = pd.DataFrame(artifacts["report"]).T
+    report_df = report_df.rename(
+        columns={
+            "precision": "Presisi",
+            "recall": "Recall",
+            "f1-score": "F1-score",
+            "support": "Jumlah data",
+        },
+        index={
+            "accuracy": "Akurasi",
+            "macro avg": "Rata-rata makro",
+            "weighted avg": "Rata-rata tertimbang",
+        },
+    )
     st.dataframe(report_df.round(4), use_container_width=True)
+
+    feature_importance_display = make_feature_importance_easy_to_read(artifacts["feature_importance_df"])
+    if not feature_importance_display.empty:
+        st.subheader("Fitur yang Paling Berpengaruh")
+        st.dataframe(feature_importance_display.round(4), use_container_width=True, hide_index=True)
 
 elif page == "Fairness":
     st.header("Evaluasi Fairness")
-    st.write(f"Atribut sensitif yang digunakan: **{artifacts['sensitive_col']}**")
+    st.write(f"Atribut sensitif yang digunakan: **{label_feature(artifacts['sensitive_col'])}**")
 
     st.subheader("Metrik per Kelompok Sensitif")
-    st.dataframe(fairness_df.round(4), use_container_width=True)
+    st.dataframe(fairness_display_df.round(4), use_container_width=True)
 
     st.subheader("Visualisasi Metrik Fairness")
     fig, ax = plt.subplots(figsize=(10, 5))
-    fairness_df.plot(kind="bar", ax=ax)
-    ax.set_title(f"Evaluasi Fairness berdasarkan {artifacts['sensitive_col']}")
-    ax.set_xlabel("Kelompok Sensitif")
-    ax.set_ylabel("Nilai Metrik")
+    fairness_display_df.plot(kind="bar", ax=ax)
+    ax.set_title(f"Evaluasi Fairness berdasarkan {label_feature(artifacts['sensitive_col'])}")
+    ax.set_xlabel("Kelompok sensitif")
+    ax.set_ylabel("Nilai metrik")
     ax.tick_params(axis="x", rotation=45)
     fig.tight_layout()
     st.pyplot(fig)
 
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("Difference")
-        st.dataframe(metric_frame.difference(method="between_groups").to_frame("difference").round(4))
+        st.subheader("Selisih antar kelompok")
+        difference_df = metric_frame.difference(method="between_groups").to_frame("Selisih")
+        difference_df.index = [METRIC_LABELS.get(index, index) for index in difference_df.index]
+        st.dataframe(difference_df.round(4))
     with col2:
-        st.subheader("Ratio")
-        st.dataframe(metric_frame.ratio(method="between_groups").to_frame("ratio").round(4))
+        st.subheader("Rasio antar kelompok")
+        ratio_df = metric_frame.ratio(method="between_groups").to_frame("Rasio")
+        ratio_df.index = [METRIC_LABELS.get(index, index) for index in ratio_df.index]
+        st.dataframe(ratio_df.round(4))
 
     st.info(
-        "Interpretasi: semakin besar perbedaan antar kelompok, semakin perlu dilakukan investigasi bias. "
-        "Evaluasi ini masih sederhana dan ditujukan untuk pembelajaran Trustworthy AI."
+        "Interpretasi: jika selisih antar kelompok besar atau rasionya terlalu jauh dari 1, maka model perlu diperiksa lagi. "
+        "Evaluasi ini masih sederhana dan digunakan untuk pembelajaran Trustworthy AI."
     )
 
 elif page == "Simulasi Prediksi":
     st.header("Simulasi Prediksi Risiko Kredit")
     st.write(
-        "Gunakan form berikut untuk mencoba prediksi satu calon peminjam. Nilai awal diambil dari salah satu baris dataset, "
-        "lalu bisa diedit sesuai kebutuhan presentasi."
+        "Gunakan form berikut untuk mencoba prediksi satu calon peminjam. "
+        "Semua label sudah dinormalisasi ke bahasa Indonesia agar lebih mudah dipahami saat presentasi."
     )
 
-    selected_idx = st.slider("Pilih contoh baris dataset", 0, len(X) - 1, 0)
+    selected_idx = st.slider("Pilih contoh data dari dataset", 0, len(X) - 1, 0)
     sample = X.iloc[selected_idx].copy()
 
     with st.form("prediction_form"):
@@ -365,6 +670,7 @@ elif page == "Simulasi Prediksi":
         categorical_features = artifacts["categorical_features"]
 
         st.subheader("Fitur Numerik")
+        st.caption("Bagian ini berisi data angka seperti usia, durasi kredit, dan jumlah kredit.")
         num_cols = st.columns(3)
         for i, col in enumerate(numeric_features):
             value = float(sample[col])
@@ -372,34 +678,51 @@ elif page == "Simulasi Prediksi":
             max_value = float(X[col].max())
             step = 1.0 if np.issubdtype(X[col].dtype, np.integer) else 0.1
             input_values[col] = num_cols[i % 3].number_input(
-                col,
+                label_feature(col),
                 min_value=min_value,
                 max_value=max_value,
                 value=value,
                 step=step,
+                help=f"Nama asli dataset: {col}. {FEATURE_EXPLANATIONS.get(col, '')}",
             )
 
         st.subheader("Fitur Kategorikal")
+        st.caption("Bagian ini berisi pilihan kategori. Nilai yang terlihat sudah diterjemahkan ke bahasa Indonesia.")
         cat_cols = st.columns(2)
         for i, col in enumerate(categorical_features):
-            options = sorted(X[col].dropna().astype(str).unique().tolist())
+            options = X[col].dropna().astype(str).drop_duplicates().tolist()
             current = str(sample[col])
             index = options.index(current) if current in options else 0
-            input_values[col] = cat_cols[i % 2].selectbox(col, options=options, index=index)
+            input_values[col] = cat_cols[i % 2].selectbox(
+                label_feature(col),
+                options=options,
+                index=index,
+                format_func=lambda value, c=col: label_value(c, value),
+                help=f"Nama asli dataset: {col}. {FEATURE_EXPLANATIONS.get(col, '')}",
+            )
 
         submitted = st.form_submit_button("Prediksi Risiko Kredit")
 
     if submitted:
         input_df = pd.DataFrame([input_values])
         pred = best_model.predict(input_df)[0]
-        label = "Bad Risk" if pred == 1 else "Good Risk"
+        label = "Risiko Kredit Buruk" if pred == 1 else "Risiko Kredit Baik"
+
         st.subheader("Hasil Prediksi")
-        st.success(f"Prediksi model: **{label}**")
+        if pred == 1:
+            st.error(f"Prediksi model: **{label}**")
+        else:
+            st.success(f"Prediksi model: **{label}**")
 
         if hasattr(best_model, "predict_proba"):
             proba = best_model.predict_proba(input_df)[0]
-            st.write(f"Probabilitas Good Risk: **{proba[0]:.2%}**")
-            st.write(f"Probabilitas Bad Risk: **{proba[1]:.2%}**")
+            st.write(f"Probabilitas risiko kredit baik: **{proba[0]:.2%}**")
+            st.write(f"Probabilitas risiko kredit buruk: **{proba[1]:.2%}**")
+
+        with st.expander("Lihat input yang dipakai model"):
+            readable_input = make_dataframe_easy_to_read(input_df)
+            st.dataframe(readable_input, use_container_width=True, hide_index=True)
+            st.caption("Tabel ini sudah diterjemahkan. Di belakang layar, model tetap menerima nilai asli sesuai dataset.")
 
         st.caption(
             "Catatan: hasil ini hanya simulasi model edukatif. Dalam implementasi nyata, keputusan kredit perlu audit, validasi, "
@@ -409,33 +732,40 @@ elif page == "Simulasi Prediksi":
 elif page == "Trustworthy AI & SDGs":
     st.header("Trustworthy AI, Regulasi, dan SDGs")
 
-    st.subheader("Fairness")
+    st.subheader("Fairness / Keadilan")
     st.write(
         "Model credit scoring harus diperiksa apakah performanya berbeda secara signifikan antar kelompok sensitif. "
         "Perbedaan besar dapat menjadi indikasi potensi bias."
     )
 
-    st.subheader("Transparency")
+    st.subheader("Transparency / Transparansi")
     st.write(
-        "Pipeline, metrik, dan interpretasi model perlu dijelaskan agar keputusan model tidak dianggap sebagai black box."
+        "Pipeline, metrik, dan interpretasi model perlu dijelaskan agar keputusan model tidak dianggap sebagai black box. "
+        "Pada aplikasi ini, nama fitur dan kategori dinormalisasi supaya prosesnya mudah dipahami audiens."
     )
 
-    st.subheader("Accountability")
+    st.subheader("Accountability / Akuntabilitas")
     st.write(
-        "Setiap tahap, mulai dari sumber data, preprocessing, pemilihan model, evaluasi, hingga interpretasi perlu terdokumentasi."
+        "Setiap tahap, mulai dari sumber data, preprocessing, pemilihan model, evaluasi, hingga interpretasi perlu terdokumentasi. "
+        "Tujuannya agar pengembang dapat menjelaskan dan mempertanggungjawabkan proses pembuatan model."
     )
 
-    st.subheader("Ethics")
+    st.subheader("Ethics / Etika")
     st.write(
-        "Credit scoring berdampak pada akses keuangan seseorang. Karena itu, sistem AI harus menghindari diskriminasi dan tetap manusiawi."
+        "Credit scoring berdampak pada akses keuangan seseorang. Karena itu, sistem AI harus menghindari diskriminasi, "
+        "menjaga transparansi, dan tidak dipakai sebagai satu-satunya dasar keputusan tanpa pengawasan manusia."
     )
 
     st.subheader("Kaitan dengan SDGs")
     sdg_df = pd.DataFrame(
         [
-            ["SDG 8", "Decent Work and Economic Growth", "Sistem kredit yang adil dapat mendukung akses pembiayaan yang lebih inklusif."],
-            ["SDG 10", "Reduced Inequalities", "Evaluasi fairness membantu mengurangi potensi diskriminasi antar kelompok."],
+            ["SDG 8", "Pekerjaan Layak dan Pertumbuhan Ekonomi", "Sistem kredit yang adil dapat mendukung akses pembiayaan yang lebih inklusif."],
+            ["SDG 10", "Berkurangnya Kesenjangan", "Evaluasi fairness membantu mengurangi potensi diskriminasi antar kelompok."],
         ],
         columns=["SDG", "Tema", "Kaitan"],
     )
     st.dataframe(sdg_df, use_container_width=True, hide_index=True)
+
+    st.success(
+        "Inti presentasi: AI bukan hanya harus akurat, tetapi juga harus adil, transparan, dapat dipertanggungjawabkan, dan sesuai etika."
+    )
