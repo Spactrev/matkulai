@@ -90,23 +90,23 @@ FEATURE_EXPLANATIONS = {
 
 CATEGORY_LABELS = {
     "checking_status": {
-        "<0": "Saldo rekening giro kurang dari 0",
-        "0<=X<200": "Saldo rekening giro 0 sampai 200",
-        ">=200": "Saldo rekening giro 200 atau lebih",
-        "no checking": "Tidak memiliki rekening giro",
+        "<0": "Saldo negatif / kurang dari 0 DM",
+        "0<=X<200": "Saldo rendah / 0–200 DM",
+        ">=200": "Saldo cukup tinggi / ≥200 DM",
+        "no checking": "Tidak punya rekening giro",
     },
     "credit_history": {
-        "no credits/all paid": "Tidak punya kredit / semua sudah lunas",
-        "all paid": "Semua kredit sudah lunas",
-        "existing paid": "Kredit berjalan dibayar lancar",
-        "delayed previously": "Pernah terlambat membayar",
-        "critical/other existing credit": "Riwayat kredit kritis / ada kredit lain",
+        "no credits/all paid": "Belum punya kredit / semua kredit sudah lunas",
+        "all paid": "Semua kredit sebelumnya sudah lunas",
+        "existing paid": "Riwayat kredit lancar",
+        "delayed previously": "Pernah terlambat bayar",
+        "critical/other existing credit": "Riwayat kredit bermasalah / kredit lain masih berjalan",
     },
     "purpose": {
         "new car": "Mobil baru",
         "used car": "Mobil bekas",
         "furniture/equipment": "Furnitur atau peralatan rumah",
-        "radio/tv": "Radio, TV, atau elektronik",
+        "radio/tv": "Elektronik / Radio / TV",
         "domestic appliance": "Peralatan rumah tangga",
         "repairs": "Perbaikan",
         "education": "Pendidikan",
@@ -116,24 +116,24 @@ CATEGORY_LABELS = {
         "other": "Lainnya",
     },
     "savings_status": {
-        "<100": "Tabungan kurang dari 100",
-        "100<=X<500": "Tabungan 100 sampai 500",
-        "500<=X<1000": "Tabungan 500 sampai 1000",
-        ">=1000": "Tabungan 1000 atau lebih",
-        "no known savings": "Tidak ada informasi tabungan",
+        "<100": "Tabungan rendah / <100 DM",
+        "100<=X<500": "Tabungan sedang / 100–500 DM",
+        "500<=X<1000": "Tabungan cukup / 500–1000 DM",
+        ">=1000": "Tabungan tinggi / ≥1000 DM",
+        "no known savings": "Tidak diketahui / tidak ada data tabungan",
     },
     "employment": {
         "unemployed": "Tidak bekerja",
-        "<1": "Bekerja kurang dari 1 tahun",
-        "1<=X<4": "Bekerja 1 sampai 4 tahun",
-        "4<=X<7": "Bekerja 4 sampai 7 tahun",
-        ">=7": "Bekerja 7 tahun atau lebih",
+        "<1": "Bekerja < 1 tahun",
+        "1<=X<4": "Bekerja 1–4 tahun",
+        "4<=X<7": "Bekerja 4–7 tahun",
+        ">=7": "Bekerja ≥ 7 tahun",
     },
     "personal_status": {
-        "male div/sep": "Laki-laki cerai/berpisah",
-        "female div/dep/mar": "Perempuan cerai/tanggungan/menikah",
+        "male div/sep": "Laki-laki, cerai/berpisah",
+        "female div/dep/mar": "Perempuan, cerai/menikah/ada tanggungan",
         "male single": "Laki-laki lajang",
-        "male mar/wid": "Laki-laki menikah/duda",
+        "male mar/wid": "Laki-laki, menikah/duda",
         "female single": "Perempuan lajang",
     },
     "other_parties": {
@@ -142,26 +142,26 @@ CATEGORY_LABELS = {
         "guarantor": "Penjamin",
     },
     "property_magnitude": {
-        "real estate": "Properti / real estate",
-        "life insurance": "Asuransi jiwa atau tabungan",
-        "car": "Mobil atau aset kendaraan",
-        "no known property": "Tidak ada aset yang diketahui",
+        "real estate": "Rumah/tanah/properti",
+        "life insurance": "Asuransi jiwa / tabungan",
+        "car": "Mobil/kendaraan",
+        "no known property": "Tidak ada aset yang tercatat",
     },
     "other_payment_plans": {
-        "bank": "Melalui bank",
-        "stores": "Melalui toko",
+        "bank": "Ada pembayaran lain di bank",
+        "stores": "Ada cicilan/pembayaran di toko",
         "none": "Tidak ada",
     },
     "housing": {
-        "rent": "Sewa",
-        "own": "Milik sendiri",
-        "for free": "Tinggal gratis",
+        "rent": "Rumah sewa",
+        "own": "Rumah milik sendiri",
+        "for free": "Tinggal gratis / ikut keluarga",
     },
     "job": {
-        "unemp/unskilled non res": "Tidak bekerja / tidak terampil non-residen",
-        "unskilled resident": "Pekerja tidak terampil residen",
+        "unemp/unskilled non res": "Tidak bekerja / tidak terampil",
+        "unskilled resident": "Pekerja tidak terampil",
         "skilled": "Pekerja terampil",
-        "high qualif/self emp/mgmt": "Kualifikasi tinggi / wiraswasta / manajemen",
+        "high qualif/self emp/mgmt": "Profesional / wiraswasta / manajemen",
     },
     "own_telephone": {
         "none": "Tidak punya telepon",
@@ -202,13 +202,44 @@ METRIC_LABELS = {
 }
 
 
+def clean_category_value(value) -> str:
+    """Membersihkan nilai kategori asli dataset agar tampilan tidak membawa tanda kutip."""
+    if pd.isna(value):
+        return "Tidak diketahui"
+
+    text_value = str(value).strip()
+
+    # Dataset OpenML kadang menyimpan kategori dengan tanda kutip sebagai bagian dari teks,
+    # contoh: "'>=7'". Bagian ini hanya membersihkan tampilan, bukan mengubah input model.
+    while len(text_value) >= 2 and (
+        (text_value[0] == text_value[-1] == "'")
+        or (text_value[0] == text_value[-1] == '"')
+    ):
+        text_value = text_value[1:-1].strip()
+
+    return text_value
+
+
 def label_feature(column_name: str) -> str:
     return FEATURE_LABELS.get(column_name, column_name)
 
 
 def label_value(column_name: str, value) -> str:
-    text_value = str(value)
-    return CATEGORY_LABELS.get(column_name, {}).get(text_value, text_value)
+    clean_value = clean_category_value(value)
+    return CATEGORY_LABELS.get(column_name, {}).get(clean_value, clean_value)
+
+
+def option_sort_key(column_name: str, value) -> tuple:
+    """Mengurutkan dropdown sesuai urutan kamus agar lebih natural dibaca."""
+    clean_value = clean_category_value(value)
+    ordered_values = list(CATEGORY_LABELS.get(column_name, {}).keys())
+    if clean_value in ordered_values:
+        return (0, ordered_values.index(clean_value))
+    return (1, label_value(column_name, value))
+
+
+def sort_category_options(column_name: str, options: list) -> list:
+    return sorted(options, key=lambda value: option_sort_key(column_name, value))
 
 
 def label_model(model_name: str) -> str:
@@ -556,6 +587,18 @@ elif page == "Dataset & Pipeline":
     )
     st.dataframe(feature_dictionary_df, use_container_width=True, hide_index=True)
 
+    st.subheader("Contoh Normalisasi Kategori")
+    contoh_normalisasi = []
+    for fitur, mapping in CATEGORY_LABELS.items():
+        for nilai_asli, nilai_tampilan in list(mapping.items())[:5]:
+            contoh_normalisasi.append([label_feature(fitur), nilai_asli, nilai_tampilan])
+    st.dataframe(
+        pd.DataFrame(contoh_normalisasi, columns=["Fitur", "Nilai asli dataset", "Tampilan di aplikasi"]),
+        use_container_width=True,
+        hide_index=True,
+    )
+    st.caption("Tabel ini menunjukkan bahwa tampilan dibuat lebih manusiawi, sedangkan nilai asli tetap dipertahankan untuk model.")
+
     st.subheader("Penjelasan Pipeline Preprocessing")
     preprocessing_df = pd.DataFrame(
         [
@@ -658,8 +701,17 @@ elif page == "Simulasi Prediksi":
     st.header("Simulasi Prediksi Risiko Kredit")
     st.write(
         "Gunakan form berikut untuk mencoba prediksi satu calon peminjam. "
-        "Semua label sudah dinormalisasi ke bahasa Indonesia agar lebih mudah dipahami saat presentasi."
+        "Semua label dan isi dropdown sudah dibuat menjadi bahasa Indonesia yang lebih mudah dibaca."
     )
+    with st.expander("Cara membaca input simulasi"):
+        st.markdown(
+            """
+            - **Fitur numerik** adalah data angka, misalnya usia, durasi kredit, dan jumlah kredit.
+            - **Fitur kategorikal** adalah pilihan kondisi calon peminjam, misalnya status rekening, riwayat kredit, pekerjaan, dan tempat tinggal.
+            - Teks pada dropdown sudah dinormalisasi agar mudah dipresentasikan.
+            - Saat tombol prediksi ditekan, aplikasi tetap mengirim **nilai asli dataset** ke pipeline model, sehingga implementasinya tetap benar.
+            """
+        )
 
     selected_idx = st.slider("Pilih contoh data dari dataset", 0, len(X) - 1, 0)
     sample = X.iloc[selected_idx].copy()
@@ -691,6 +743,7 @@ elif page == "Simulasi Prediksi":
         cat_cols = st.columns(2)
         for i, col in enumerate(categorical_features):
             options = X[col].dropna().astype(str).drop_duplicates().tolist()
+            options = sort_category_options(col, options)
             current = str(sample[col])
             index = options.index(current) if current in options else 0
             input_values[col] = cat_cols[i % 2].selectbox(
@@ -698,7 +751,10 @@ elif page == "Simulasi Prediksi":
                 options=options,
                 index=index,
                 format_func=lambda value, c=col: label_value(c, value),
-                help=f"Nama asli dataset: {col}. {FEATURE_EXPLANATIONS.get(col, '')}",
+                help=(
+                    f"Nama asli dataset: {col}. {FEATURE_EXPLANATIONS.get(col, '')} "
+                    "Pilihan di layar sudah disederhanakan, tetapi nilai asli tetap dipakai oleh model."
+                ),
             )
 
         submitted = st.form_submit_button("Prediksi Risiko Kredit")
