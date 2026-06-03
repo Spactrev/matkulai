@@ -471,7 +471,7 @@ def metric_card(label: str, value: str):
 
 
 st.title("Implementasi Credit Scoring Berbasis Trustworthy AI")
-st.caption("Versi web app interaktif berbahasa Indonesia dan sudah dinormalisasi agar mudah dipresentasikan.")
+st.caption("Dashboard interaktif untuk mempresentasikan alur credit scoring, evaluasi model, dan fairness.")
 
 with st.spinner("Menyiapkan dataset dan melatih model..."):
     artifacts = train_models()
@@ -500,9 +500,6 @@ page = st.sidebar.radio(
     ],
 )
 
-st.sidebar.info(
-    "Catatan: Aplikasi ini adalah demo edukatif untuk presentasi tugas AI, bukan sistem keputusan kredit nyata."
-)
 
 if page == "Ringkasan Proyek":
     st.header("Ringkasan Proyek")
@@ -757,14 +754,14 @@ elif page == "Simulasi Prediksi":
                 ),
             )
 
-        submitted = st.form_submit_button("Prediksi Risiko Kredit")
+        submitted = st.form_submit_button("Lihat Hasil Prediksi")
 
     if submitted:
         input_df = pd.DataFrame([input_values])
         pred = best_model.predict(input_df)[0]
         label = "Risiko Kredit Buruk" if pred == 1 else "Risiko Kredit Baik"
 
-        st.subheader("Hasil Prediksi")
+        st.subheader("Hasil Prediksi Model")
         if pred == 1:
             st.error(f"Prediksi model: **{label}**")
         else:
@@ -778,11 +775,12 @@ elif page == "Simulasi Prediksi":
         with st.expander("Lihat input yang dipakai model"):
             readable_input = make_dataframe_easy_to_read(input_df)
             st.dataframe(readable_input, use_container_width=True, hide_index=True)
-            st.caption("Tabel ini sudah diterjemahkan. Di belakang layar, model tetap menerima nilai asli sesuai dataset.")
+            st.caption("Tabel ini memakai istilah yang sudah disederhanakan supaya lebih mudah dibaca saat presentasi.")
 
-        st.caption(
-            "Catatan: hasil ini hanya simulasi model edukatif. Dalam implementasi nyata, keputusan kredit perlu audit, validasi, "
-            "penjelasan keputusan, dan kepatuhan regulasi."
+        st.write(
+            "Hasil ini kami gunakan sebagai contoh bagaimana pipeline bekerja dari input data, preprocessing, "
+            "sampai model mengeluarkan prediksi. Untuk pembahasan di kelas, bagian ini bisa dipakai untuk "
+            "menunjukkan perubahan hasil ketika input calon peminjam diubah."
         )
 
 elif page == "Trustworthy AI & SDGs":
