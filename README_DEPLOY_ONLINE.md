@@ -122,3 +122,10 @@ Pastikan deployment memiliki akses internet karena dataset diambil dari URL publ
 ```text
 https://raw.githubusercontent.com/datasets/openml-datasets/main/data/credit-g/credit-g.csv
 ```
+
+
+## Catatan Penting Jika Deploy Error di Streamlit
+
+Jika log menunjukkan `Using Python 3.14` lalu gagal pada `scipy`, jangan hanya mengandalkan `runtime.txt`. Saat deploy/redeploy di Streamlit Community Cloud, buka **Advanced settings** lalu pilih **Python 3.11**. File `requirements.txt` di paket ini sudah dipin agar dependency machine learning lebih stabil.
+
+Lihat juga file `README_FIX_STREAMLIT_ERROR.md` untuk langkah perbaikan rinci.
