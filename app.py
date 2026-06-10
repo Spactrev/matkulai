@@ -500,8 +500,8 @@ page = st.sidebar.radio(
 )
 
 
-if page == "Ringkasan Proyek":
-    st.header("Ringkasan Proyek")
+if page == "Pendahuluan":
+    st.header("Pendahuluan")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         metric_card("Jumlah data", f"{df.shape[0]:,}")
