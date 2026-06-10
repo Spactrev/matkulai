@@ -491,11 +491,10 @@ st.sidebar.header("Navigasi")
 page = st.sidebar.radio(
     "Pilih bagian:",
     [
-        "Ringkasan Proyek",
+        "Pendahuluan",
         "Dataset & Pipeline",
         "Performa Model",
         "Fairness",
-        "Simulasi Prediksi",
         "Trustworthy AI & SDGs",
     ],
 )
